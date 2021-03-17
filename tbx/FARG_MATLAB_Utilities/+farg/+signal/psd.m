@@ -1,5 +1,6 @@
-function [f,P1,df] = genfft(y,Fs,varargin)
-%% GENFFT generate the single sided fft of the single y
+function [f,P1,df] = psd(y,Fs,varargin)
+%GENFFT generate the power spectial density of the input y, with a smapling
+% frequency of 'Fs'
 % Created by : R Cheung
 % Contact: r.c.m.cheung@bristol.ac.uk
 % Date: Oct 2019
