@@ -191,39 +191,7 @@ switch rotSeq
         q3 = 0;
         q4 = 0;
         
-    case 'Nastran'
-        
-        % Space-fixed rotations in XYZ sequence specify all the rotations 
-        % about the global fixed coordinate axes (not intermediate axes)
-        
-        R1 = rot1;
-        R2 = rot2;
-        R3 = rot3;
-        
-        A01 = [ 1   0           0
-                0   cos(R1)     -sin(R1)
-                0   sin(R1)     cos(R1) ];
-        A0prime0 = [    cos(R2)     0       sin(R2)
-                        0           1       0
-                        -sin(R2)    0       cos(R2)     ];
-        A0primeprime0 = [   cos(R3)     -sin(R3)    0
-                            sin(R3)     cos(R3)     0
-                            0           0           1   ];
-        A03 = A0primeprime0*A0prime0*A01;
-        
-        q1 = 0;
-        q2 = 0;
-        q3 = 0;
-        q4 = 0;
-        
-    case 'vector' % rotation vector to transformation matrix
-        
-%         theta = sqrt(rot1^2 + rot2^2 + rot3^2);
-%         rotVector = [rot1, rot2, rot3]./theta;
-%         quat1 = cos(theta/2);
-%         quat2 = rotVector(1)*sin(theta/2);
-%         quat3 = rotVector(2)*sin(theta/2);
-%         quat4 = rotVector(3)*sin(theta/2);
+    case 'vector' % rotation vector to transformation matrix (method used by Nastran)
         
         rotVector = [rot1, rot2, rot3];
         quat = quaternion(rotVector,'rotvec');
