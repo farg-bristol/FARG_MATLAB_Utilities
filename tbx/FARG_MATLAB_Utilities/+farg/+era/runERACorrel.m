@@ -10,7 +10,7 @@ dt = 1/samplingRate;
 %% filter signal
 [y,~] = farg.signal.filterSignal(yi,dt,fmax);
 %% FFT
-[~,ys,df] = farg.signal.genfft(y,samplingRate);
+[~,ys,df] = farg.signal.psd(y,samplingRate);
 %% prep ERA-DC
 [y,~] = farg.era.genCorrelSignal(y,dt,nCorrel);
 [H0,H1] = farg.era.genHankelMat(y,alpha);
