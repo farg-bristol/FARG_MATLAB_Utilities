@@ -1,4 +1,4 @@
-function [y_bin] = bin_data(x,y,x_bin,func)
+function [y_bin] = bin_data(x,y,x_bin,varargin)
 % BIN_DATA takes the dataset {x,y} and returns the y data
 % sorted into the x locations 'x_bins'
 % in each bin the function 'func' is applied to each bin so that the output
@@ -13,13 +13,13 @@ function [y_bin] = bin_data(x,y,x_bin,func)
 
 p = inputParser();
 p.addOptional('func',@nanmean,@(x)isa(x,'function_handle'));
-p.parse(func);
+p.parse(varargin{:});
 
 % calc distance between each x location and each bin
-dist = cell2mat(arrayfun(@(x)abs(x-x_bin(:)'),x(:),'UniformOutput',false));
+dist = cell2mat(arrayfun(@(x)abs(x(:)-x_bin(:)'),x(:),'UniformOutput',false));
 
 % get index of closest bin to each x location
-[~,idx] = min(dist);
+[~,idx] = min(dist');
 
 % iterate over each bin and apply the 'binning function'
 y_bin = arrayfun(@(x)p.Results.func(y(idx==x)),cumsum(ones(size(x_bin))));

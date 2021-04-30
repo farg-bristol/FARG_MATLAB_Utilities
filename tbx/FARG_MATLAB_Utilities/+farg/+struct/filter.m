@@ -46,9 +46,9 @@ for i = 1:length(filters)
                     for j= 1:length(filters{i}{2})
                         if ischar(filters{i}{2}{j}) || ischar(filters{i}{2}{j})             
                             if j == 1
-                                I_temp = strcmp(data,filters{i}{2});  
+                                I_temp = strcmp(data,filters{i}{2}{j});  
                             else
-                                I_temp = I_temp | strcmp(data,filters{i}{2});       
+                                I_temp = I_temp | strcmp(data,filters{i}{2}{j});       
                             end       
                         end
                     end
@@ -110,7 +110,9 @@ for i = 1:length(filters)
                         continue
                     end
                 end
-            end          
+            else
+                warning('Skipping field %s, as the 1st row is an unknown data type');
+            end
         end
         
     end   
