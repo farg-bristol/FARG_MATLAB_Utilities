@@ -88,7 +88,12 @@ function folders = get_sub_folders(folderpath)
     % find all files in the directory
     files = dir(fullfile(folderpath,'**'));
     % extract all unique folders not in a namespace convention
-    folders = arrayfun(@(x)string(strsplit(x.folder,[filesep,'+'])),...
+    if strcmp(filesep,'\')
+        sep = ['\\'];
+    else
+        sep = filesep;
+    end
+    folders = arrayfun(@(x)string(strsplit(x.folder,[sep,'+'])),...
         files,'UniformOutput',false);
     folders = unique(cellfun(@(x)x(1),folders));
     % remove origanal fold from results
