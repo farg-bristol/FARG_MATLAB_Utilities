@@ -15,12 +15,15 @@ dmx = zeros(mSize,mSize);
 
 freq_red = [];
 damp_red = [];
+order_red = [];
 freq_blue = [];
 damp_blue = [];
 freq_black = [];
 damp_black = [];
 
 h = figure(3);
+h.WindowState = 'maximized';
+clf;
 hold on
 nn = 0;
 for jj = nStart:nEnd
@@ -32,7 +35,8 @@ for jj = nStart:nEnd
     damp = zeta(1:2:end)*100; % extract one of the conj pair
     fmx(1:jj,jj) = freq;
     dmx(1:jj,jj) = damp;
-    
+    subplot(2,1,1)
+    hold on
     if(nn==1)
         plot(freq,jj*ones(size(freq)),'+k')
     else
@@ -45,23 +49,24 @@ for jj = nStart:nEnd
                     ddif = abs(d-dmx(IDX,jj-1))/d;
                     if(ddif<=dampTol)
                         plot(f,jj,'Or') % root stabilised in freq & damping
-                        if (d<50)
+                        %if (d<90)
                             freq_red = [freq_red,f];
                             damp_red = [damp_red,d];
-                        end
+                            order_red = [order_red,jj];
+                        %end
                     else
                         plot(f,jj,'^b') % root stabilised in freq only
-                        if (dmx(ii,jj)<50)
+                        %if (dmx(ii,jj)<90)
                             freq_blue = [freq_blue,f];
                             damp_blue = [damp_blue,d];
-                        end
+                        %end
                     end
                 else
                     plot(f,jj,'+k') % root
-                    if(dmx(ii,jj)<50)
+                    %if(dmx(ii,jj)<90)
                         freq_black = [freq_black,f];
                         damp_black = [damp_black,d];
-                    end
+                    %end
                 end
             end
         end
@@ -80,30 +85,36 @@ xlabel('Frequency, Hz')
 ylabel('System Order')
 title('How many modes need to be selected ?')
 %%
-nF = input('How many modes to select?    ');
-fSelected = zeros(nF,1);
-dSelected = zeros(nF,1);
-for nn = 1:nF
-    figure(h);
-    title(['Select Mode ',int2str(nn)])
-    [f,m] = ginput(1);
-    m = round(m);
-    [~,IDX] = min(abs(f-fmx(1:m,m)));
-    f = fmx(IDX,m);
-    d = dmx(IDX,m);
-    plot(f,m,'*k')
-    fprintf('Order = %d    Freq = %8.2f    Damping = %5.1f%%\n',m,f,d);
-    fSelected(nn) = f;
-    dSelected(nn) = d;
-end
+% fSelected = [];
+% dSelected = [];
+% while true
+%     figure(h);
+%     title(sprintf('Select Mode %.0f',length(fSelected)+1))
+%     [f,m] = ginput(1);
+%     if isempty(f)
+%         break
+%     else
+%         m = round(m);
+%         [~,IDX] = min(abs(f-fmx(1:m,m)));
+%         f = fmx(IDX,m);
+%         d = dmx(IDX,m);
+%         plot(f,m,'*k')
+%         %fprintf('Order = %d    Freq = %8.2f    Damping = %5.1f%%\n',m,f,d);
+%         fSelected(end+1) = f;
+%         dSelected(end+1) = d;
+%     end
+% end
 %% Plots
-h = figure(4);
+% h = figure(4);
+% h.WindowState = 'maximized';
+% clf;
+subplot(2,1,2)
 hold on
-plot(freq_red,damp_red,'Or')
+scatter(freq_red,damp_red,[],order_red)
 xlim([0,fmax]);
-for nn = 1:nF
-    xline(fSelected(nn),'k--');
-end
+% for nn = 1:length(fSelected)
+%     xline(fSelected(nn),'k--');
+% end
 maxDamp = max(damp_red);
 for ii = 1:size(ys,2)
     s = ys(1:end/2+1,ii);
@@ -112,22 +123,30 @@ for ii = 1:size(ys,2)
     plot(fs,sc*abs(s),'b-')
 end
 hold off
+colormap(flipud(hot))
+%c = colorbar;
+%c.Label.String = 'Order';
 xlabel('Frequency, Hz')
 ylabel('Damping, %')
 title('How many modes need to be selected ?')
+%nF = input('How many modes to select?    ');
 % plot 2
-nF = input('How many modes to select?    ');
-fSelected = zeros(nF,1);
-dSelected = zeros(nF,1);
-for nn = 1:nF
+
+fSelected = [];
+dSelected = [];
+while true
     figure(h);
-    title(['Select Mode ',int2str(nn)])
+    title(sprintf('Select Mode %.0f',length(fSelected)+1))
     [f,d] = ginput(1);
-    % find nearest red
-    err = sqrt((freq_red-f).^2+(damp_red-d).^2);
-    [~,IDX] = min(err);
-    fSelected(nn) = freq_red(IDX);
-    dSelected(nn) = damp_red(IDX);
+    if isempty(f)
+        break
+    else
+        % find nearest red
+        err = sqrt((freq_red-f).^2+(damp_red-d).^2);
+        [~,IDX] = min(err);
+        fSelected(end+1) = freq_red(IDX);
+        dSelected(end+1) = damp_red(IDX);
+    end
 end
 %% Sort output
 [fSelected,IDX] = sort(fSelected);

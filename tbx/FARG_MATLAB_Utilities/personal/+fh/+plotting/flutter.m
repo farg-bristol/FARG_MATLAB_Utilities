@@ -18,7 +18,7 @@ function flutter(data,varargin)
 %   - Colors: nx3 matrix of colors to plot
 %
 p = inputParser();
-p.addParameter('filter',@(x)logical(ones(length(x),1)))
+p.addParameter('filter',{})
 p.addParameter('scale',@(x)x)
 p.addParameter('NModes',[])
 p.addParameter('LineStyle','-')
@@ -30,7 +30,9 @@ p.addParameter('YAxis','F');
 p.addParameter('Colors',[1,0,0;0,0,1;0,1,1;0,1,0;1,1,0;1,0,1])
 p.parse(varargin{:})
 
-data = data(p.Results.filter(data));
+if ~isempty(p.Results.filter)
+    data = farg.struct.filter(data,p.Results.filter);
+end
 
 if isempty(p.Results.NModes)
     p.parse('NModes',max([data.(p.Results.Mode)]),varargin{:})
@@ -44,7 +46,7 @@ for i = 1:p.Results.NModes
     pl = plot([mode_data.(p.Results.XAxis)],...
         p.Results.scale([mode_data.(p.Results.YAxis)]),...
         p.Results.LineStyle);
-    pl.Color = p.Results.Colors(mod(i-1,length(p.Results.Colors))+1,:);
+    pl.Color = p.Results.Colors(mod(i-1,size(p.Results.Colors,1))+1,:);
     pl.LineWidth = p.Results.LineWidth;
     if ~isempty(p.Results.DisplayName)
         pl.DisplayName = [p.Results.DisplayName,' ',num2str(i)];

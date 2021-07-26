@@ -8,7 +8,7 @@ function [fSelected,dSelected,plotHandle] = runERACorrel(yi,samplingRate,fmax,al
 %% prep
 dt = 1/samplingRate;
 %% filter signal
-[y,~] = farg.signal.filterSignal(yi,dt,fmax);
+y = lowpass(yi,fmax,samplingRate);%% farg.signal.filterSignal(yi,dt,fmax);
 %% FFT
 [~,ys,df] = farg.signal.psd(y,samplingRate);
 %% prep ERA-DC

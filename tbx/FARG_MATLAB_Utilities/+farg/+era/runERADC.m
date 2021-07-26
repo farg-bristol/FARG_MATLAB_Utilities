@@ -10,7 +10,7 @@ dt = 1/samplingRate;
 %% filter signal
 [y,~] = farg.signal.filterSignal(yi,dt,fmax);
 %% FFT
-[~,ys,df] = farg.signal.genfft(y,samplingRate);
+[~,ys,df] = farg.signal.psd(y,samplingRate);
 %% prep ERA-DC
 [H0,H1] = farg.era.genCorrelHankelMat(y,alpha,tau,xi,zeta);
 [P,D,Q] = svd(H0,'econ'); % SVD of H0 matrix  (using the "skinny" version)

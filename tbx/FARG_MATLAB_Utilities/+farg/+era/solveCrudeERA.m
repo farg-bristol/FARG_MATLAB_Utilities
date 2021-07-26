@@ -38,7 +38,8 @@ end
 
 % select the valid frequencies
 rowsI = fmx(:,end)<fmax;
-rowsI = rowsI & std(dmx(:,80:100),0,2)<dTol & std(fmx(:,80:100),0,2)<0.1;
+rowsI = rowsI & std(dmx(:,nEnd-round((nEnd-nStart)/4):nEnd),0,2)<dTol &...
+    std(fmx(:,nEnd-round((nEnd-nStart)/4):nEnd),0,2)<0.1;
 rowsI = rowsI & mean(dmx(:,end-windowSize:end),2)>0;
 
 fSelected = mean(fmx(rowsI,end-windowSize:end),2);

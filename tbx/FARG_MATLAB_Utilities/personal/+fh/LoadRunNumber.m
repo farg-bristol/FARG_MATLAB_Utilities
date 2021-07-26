@@ -1,6 +1,8 @@
 function [d] = LoadRunNumber(runNumber,varargin)
-%LOADRUNNUMBER Summary of this function goes here
-%   Detailed explanation goes here
+%LOADRUNNUMBER load data from a specific run
+%   Load data from run 'runNumber'
+%   Parameters:
+%       - localDir: path to folder containing data folder (default ../..)
 
 p = inputParser();
 p.addOptional('localDir','../../',@(x)isfolder(x))

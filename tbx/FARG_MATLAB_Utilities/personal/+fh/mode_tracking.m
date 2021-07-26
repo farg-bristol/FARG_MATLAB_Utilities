@@ -2,7 +2,11 @@ function data = mode_tracking(data,varargin)
 %MODE_TRACKING corrects the modes numbers in flutter data
 %   In the flutter data 'data' the function sweeps through each value of
 %   'XAxis' and tracks which modes line up with the previous modes by
-%   matching the closest eigen vectors across epoch's
+%   matching either:
+%       -   'cmplx': by calculating the the closest pole from the previous
+%       velocity to the next (in the complex plane)
+%       -   'modeshape': by calculating the the closest mode shape from the
+%       previous velocity to the next
 %   INPUTS:
 %       data - a data structure with the following fields
 %               - <Mode>: the mode number of each mode
@@ -17,6 +21,7 @@ function data = mode_tracking(data,varargin)
 %               modes, of the following format
 %               {{<XAxisValue>,[new_mode_order]},}, where new_mode_order is
 %               a list with the numbers 1->Modes in the new order
+%       Method - either 'cmplx' or 'modeshape' as described before
 %   OUTPUTS:
 %       data - the original data structre with the mode numbers corrected
 % deal with input parameters
@@ -25,6 +30,7 @@ p.addParameter('Mode','MODE',@ischar);
 p.addParameter('XAxis','V',@ischar);
 p.addParameter('NModes',[],@isnumeric);
 p.addParameter('manual_switch',{});
+p.addParameter('Method','cmplx');
 p.parse(varargin{:})
 
 v_switch = cellfun(@(x)x{1},p.Results.manual_switch);
@@ -50,18 +56,26 @@ for v_i = 2:length(Xi)
        mode_track(:,v_i) = mode_track(M_f,v_i-1);
        continue
    end
-    
-   % get frequency and damping data for this and previous epoch
-   [last] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i-1)),...
-       mode_track(:,v_i-1),p.Results.Mode);
-   [next] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i)),...
-       mode_track(:,v_i-1),p.Results.Mode);
    
+   switch p.Results.Method
+       case 'cmplx'
+           % get frequency and damping data for this and previous velocity
+           [last] = extract_complex(data([data.(p.Results.XAxis)]==Xi(v_i-1)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           [next] = extract_complex(data([data.(p.Results.XAxis)]==Xi(v_i)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+       case 'modeshape'
+           % get frequency and damping data for this and previous epoch
+           [last] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i-1)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           [next] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+       otherwise
+           error('Unkown Method - Method "%s" is unknown, it must be either "cmplx" or "modeshape"')
+   end
    M_f = distance_matrix(last,next);
    [~,idx] = max(M_f);
-   mode_track(:,v_i) = mode_track(idx,v_i-1);
-   % produce wieghting matrix for how far each point is from the others
-   %M_f = weighting_matrix(last_f,next_f,0.8);
+   mode_track(:,v_i) = mode_track(idx,v_i-1); 
 end
 
 % work through data structure and replace mode numbers accordingly
@@ -93,6 +107,14 @@ function M_i = distance_matrix(last,next)
         M_i(max_i,max_j) = 1;
         M(max_i,:) = 0;
         M(:,max_j) = 0;
+    end
+end
+
+function [x] = extract_complex(data,modes,ModeField)
+    x = zeros(2,length(modes));
+    for i = 1:length(modes)
+        idx = find([data.(ModeField)]==modes(i),1);
+        x(:,i) = data(idx).CMPLX;
     end
 end
 

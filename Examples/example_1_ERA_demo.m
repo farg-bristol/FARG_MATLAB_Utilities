@@ -6,7 +6,7 @@
 % Generate a predefined signal and use ERA to confirm freq & damping of the
 % generated signal
 %% ERA Method select
-SW = 1; % ERA = 1, ERA-DC = 2, ERA using correlated input = 3
+SW = 3; % ERA = 1, ERA-DC = 2, ERA using correlated input = 3
 %% Generate test signal
 f = [13.0,20.0,31.0]; % sine freq
 a = [0.2,0.7,1.0]; % amplitude
