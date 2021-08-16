@@ -1,8 +1,12 @@
-function [] = plotSVD(D)
+function [] = plotSVD(D,varargin)
 %% Plot singular values
 % Created by : R Cheung
 % Contact: r.c.m.cheung@bristol.ac.uk
 % Date: Oct 2019
+p = inputParser();
+p.addOptional('fHandle',[]);
+p.parse(varargin{:});
+
 DD = diag(D);
 ddsum = sum(DD);   % sum of all singular values
 dsum = cumsum(DD)/ddsum;
@@ -10,7 +14,11 @@ in1 = cumsum(ones(length(DD),1));
 in2 = cumsum(ones(length(DD)-1,1));
 Sratio = DD(1:length(DD)-1)./DD(2:length(DD));
 % plots
-figure
+if isempty(p.Results.fHandle)
+    f = figure(); 
+else
+    f = figure(p.Results.fHandle);
+end
 subplot(3,1,1)
 semilogy(DD,'xb-')
 ylabel('singular value')
