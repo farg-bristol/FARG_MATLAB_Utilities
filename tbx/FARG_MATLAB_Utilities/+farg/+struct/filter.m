@@ -34,9 +34,21 @@ for i = 1:length(filters)
         if ~isfield(DataStruct,fieldname)
             warning('skipping filter on field "%s" as it does not exist',fieldname);
         else
-            %if here field exists to filter on           
+            %if here field exists to filter on   
+            % if its a function do minimal stuff to the data
+            if isa(filters{i}{2},'function_handle')
+                try
+                    if isnumeric(DataStruct(1).(fieldname)) || islogical(DataStruct(1).(fieldname))
+                        I = I & arrayfun(filters{i}{2},[DataStruct.(fieldname)]);
+                    else
+                        I = I & arrayfun(filters{i}{2},{DataStruct.(fieldname)});
+                    end
+                catch
+                    warning('Error using function handle on field %s',fieldname);
+                    continue
+                end       
             % check if field is numeric or a string
-            if ischar(DataStruct(1).(fieldname)) || isstring(DataStruct(1).(fieldname)) || iscellstr(DataStruct(1).(fieldname))
+            elseif ischar(DataStruct(1).(fieldname)) || isstring(DataStruct(1).(fieldname)) || iscellstr(DataStruct(1).(fieldname))
                 data = string({DataStruct.(fieldname)});
                 % if data is a string check filter is a string or a set of cell array of strings
                 if ischar(filters{i}{2}) || isstring(filters{i}{2})
@@ -53,14 +65,6 @@ for i = 1:length(filters)
                         end
                     end
                     I = I & I_temp;
-                elseif isa(filters{i}{2},'function_handle')
-                    f = filters{i}{2};
-                    try
-                        I = I & f(data);
-                    catch e
-                        warning('Error using function handle on field %s',fieldname);
-                        continue
-                    end
                 end                                 
             % check if numeric    
             elseif isnumeric(DataStruct(1).(fieldname))
@@ -70,11 +74,7 @@ for i = 1:length(filters)
                     filts = filters{i}{2};
                     I_temp = zeros(size(data));
                     for j= 1:length(filts)
-%                         if j == 1
-%                             I_temp = data == filts(j);         
-%                         else
-                            I_temp = I_temp | data == filts(j);         
-%                         end                 
+                        I_temp = I_temp | data == filts(j);                    
                     end
                     I = I & I_temp;
                 elseif iscell(filters{i}{2})
@@ -88,27 +88,11 @@ for i = 1:length(filters)
                             I = I & contains(data,filters{i}{2}{2});
                         end
                     end
-                elseif isa(filters{i}{2},'function_handle')
-                    f = filters{i}{2};
-                    try
-                        I = I & f(data);
-                    catch
-                        warning('Error using function handle on field %s',fieldname);
-                        continue
-                    end
                 end
             elseif islogical(DataStruct(1).(fieldname))
                 data = [DataStruct.(fieldname)];
                 if islogical(filters{i}{2}) || isnumeric(filters{i}{2})
                     I = I & (data == filters{i}{2});
-                elseif isa(filters{i}{2},'function_handle')
-                    f = filters{i}{2};
-                    try
-                        I = I & f(data);
-                    catch
-                        warning('Error using function handle on field %s',fieldname);
-                        continue
-                    end
                 end
             else
                 warning('Skipping field %s, as the 1st row is an unknown data type');
