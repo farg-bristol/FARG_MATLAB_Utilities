@@ -19,7 +19,6 @@ function flutter(data,varargin)
 %
 p = inputParser();
 p.addParameter('filter',{})
-p.addParameter('scale',@(x)x)
 p.addParameter('NModes',[])
 p.addParameter('LineStyle','-')
 p.addParameter('DisplayName',[])
@@ -27,6 +26,7 @@ p.addParameter('LineWidth',1)
 p.addParameter('Mode','MODE');
 p.addParameter('XAxis','V');
 p.addParameter('YAxis','F');
+p.addParameter('YScaling',@(x)x);
 p.addParameter('Colors',[1,0,0;0,0,1;0,1,1;0,1,0;1,1,0;1,0,1])
 p.parse(varargin{:})
 
@@ -43,9 +43,9 @@ for i = 1:p.Results.NModes
     %sort the XAxis
     [~,idx] = sort([mode_data.(p.Results.XAxis)]);
     mode_data = mode_data(idx);
-    pl = plot([mode_data.(p.Results.XAxis)],...
-        p.Results.scale([mode_data.(p.Results.YAxis)]),...
-        p.Results.LineStyle);
+    x = [mode_data.(p.Results.XAxis)];
+    y = p.Results.YScaling([mode_data.(p.Results.YAxis)]);
+    pl = plot(x,y,p.Results.LineStyle);
     pl.Color = p.Results.Colors(mod(i-1,size(p.Results.Colors,1))+1,:);
     pl.LineWidth = p.Results.LineWidth;
     if ~isempty(p.Results.DisplayName)
