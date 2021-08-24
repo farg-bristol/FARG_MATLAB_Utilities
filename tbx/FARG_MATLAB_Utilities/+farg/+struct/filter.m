@@ -32,13 +32,13 @@ for i = 1:length(filters)
     fieldname = filters{i}{1};
     if ischar(fieldname)
         if ~isfield(DataStruct,fieldname)
-            warning('skipping filter on field "%s" as it does not exist',fieldname);
+            warning('skipping filter on field %s as it does not exist',fieldname);
         else
             %if here field exists to filter on   
             % if its a function do minimal stuff to the data
             if isa(filters{i}{2},'function_handle')
                 try
-                    if isnumeric(DataStruct(1).(fieldname)) || islogical(DataStruct(1).(fieldname))
+                    if isnumeric(DataStruct(1).(fieldname)) || islogical(DataStruct(1).(fieldname)) || isenum(DataStruct(1).(fieldname))
                         I = I & arrayfun(filters{i}{2},[DataStruct.(fieldname)]);
                     else
                         I = I & arrayfun(filters{i}{2},{DataStruct.(fieldname)});
@@ -89,13 +89,24 @@ for i = 1:length(filters)
                         end
                     end
                 end
+            elseif isenum(DataStruct(1).(fieldname))
+                data = [DataStruct.(fieldname)];
+                % if filter numeric filter for each item in array
+                if isenum(filters{i}{2}) && ~isempty(filters{i}{2})
+                    filts = filters{i}{2};
+                    I_temp = zeros(size(data));
+                    for j= 1:length(filts)
+                        I_temp = I_temp | data == filts(j);                    
+                    end
+                    I = I & I_temp;
+                end
             elseif islogical(DataStruct(1).(fieldname))
                 data = [DataStruct.(fieldname)];
                 if islogical(filters{i}{2}) || isnumeric(filters{i}{2})
                     I = I & (data == filters{i}{2});
                 end
             else
-                warning('Skipping field %s, as the 1st row is an unknown data type');
+                warning('Skipping field %s, as the 1st row is an unknown data type',fieldname);
             end
         end
         
