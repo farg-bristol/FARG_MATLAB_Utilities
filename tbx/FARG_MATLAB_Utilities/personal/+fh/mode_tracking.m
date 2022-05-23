@@ -47,7 +47,8 @@ end
 % setup structure to record how mode numbers change (row n will show how
 % the original mode n changes across all velocties)
 mode_track = zeros(NModes,length(Xi));
-mode_track(:,1) = 1:NModes;
+[~,mode_track(:,1)] = sort(sqrt(abs(extract_complex(data([data.(p.Results.XAxis)]==Xi(1)),1:NModes,p.Results.Mode))));
+% mode_track(:,1) = 1:NModes;
 for v_i = 2:length(Xi)
    % check if we are manual switch modes 
    idx = find(v_switch==Xi(v_i),1);
@@ -70,6 +71,9 @@ for v_i = 2:length(Xi)
                mode_track(:,v_i-1),p.Results.Mode);
            [next] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i)),...
                mode_track(:,v_i-1),p.Results.Mode);
+           zero_idx = vecnorm(last) == 0 | vecnorm(next) == 0;
+           last(:,zero_idx) = 1/size(last,1);
+           next(:,zero_idx) = 1/size(last,1);
        otherwise
            error('Unkown Method - Method "%s" is unknown, it must be either "cmplx" or "modeshape"')
    end
@@ -111,10 +115,10 @@ function M_i = distance_matrix(last,next)
 end
 
 function [x] = extract_complex(data,modes,ModeField)
-    x = zeros(2,length(modes));
+    x = zeros(1,length(modes));
     for i = 1:length(modes)
         idx = find([data.(ModeField)]==modes(i),1);
-        x(:,i) = data(idx).CMPLX;
+        x(i) = data(idx).CMPLX;
     end
 end
 
@@ -122,8 +126,12 @@ function [x] = extract_vecs(data,NModes,ModeField)
     x = [];
     for i = 1:length(NModes)
         idx = find([data.(ModeField)]==NModes(i),1);
-        vec = data(idx).EigenVector(:);
-        x(:,i) = vec./norm(vec);
+        if ~isempty(data(idx).EigenVector(:))
+            vec = data(idx).EigenVector(:);
+            x(:,i) = vec./norm(vec);
+        else
+            x(1:size(x,1),i) = 0;
+        end
     end
 end
 

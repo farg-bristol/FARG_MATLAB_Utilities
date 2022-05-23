@@ -39,9 +39,9 @@ for i = 1:length(filters)
             if isa(filters{i}{2},'function_handle')
                 try
                     if isnumeric(DataStruct(1).(fieldname)) || islogical(DataStruct(1).(fieldname)) || isenum(DataStruct(1).(fieldname))
-                        I = I & arrayfun(filters{i}{2},[DataStruct.(fieldname)]);
+                        I = I & cellfun(filters{i}{2},{DataStruct.(fieldname)});
                     else
-                        I = I & arrayfun(filters{i}{2},{DataStruct.(fieldname)});
+                        I = I & cellfun(filters{i}{2},{DataStruct.(fieldname)});
                     end
                 catch
                     warning('Error using function handle on field %s',fieldname);
@@ -84,8 +84,18 @@ for i = 1:length(filters)
                             I = I & (data >= bounds(1) & data <= bounds(2));
                         end
                     elseif strcmp(filters{i}{2}{1},'contains')
-                        if ischar(filters{i}{2}{2}) || ischar(filters{i}{2}{2})
+                        if ischar(filters{i}{2}{2})
                             I = I & contains(data,filters{i}{2}{2});
+                        end
+                    elseif strcmp(filters{i}{2}{1},'tol')
+                        if isnumeric(filters{i}{2}{2}) && isnumeric(filters{i}{2}{3})
+                            val = filters{i}{2}{2};
+                            tol = filters{i}{2}{3};
+                            tmp_I = (data >= val(1)-tol & data <= val(1)+tol);
+                            for v_i = 2:length(val)
+                                tmp_I = tmp_I|(data >= val(v_i)-tol & data <= val(v_i)+tol);
+                            end
+                            I = I & tmp_I;
                         end
                     end
                 end

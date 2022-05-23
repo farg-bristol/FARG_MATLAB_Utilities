@@ -1,4 +1,4 @@
-function flutter(data,varargin)
+function pl = flutter(data,varargin)
 %PLOT_FLUTTER method to easily plot flutter data
 % Inputs:
 %   - data: a structured array with the following fields:
@@ -45,13 +45,13 @@ for i = 1:p.Results.NModes
     mode_data = mode_data(idx);
     x = [mode_data.(p.Results.XAxis)];
     y = p.Results.YScaling([mode_data.(p.Results.YAxis)]);
-    pl = plot(x,y,p.Results.LineStyle);
-    pl.Color = p.Results.Colors(mod(i-1,size(p.Results.Colors,1))+1,:);
-    pl.LineWidth = p.Results.LineWidth;
+    pl(i) = plot(x,y,p.Results.LineStyle);
+    pl(i).Color = p.Results.Colors(mod(i-1,size(p.Results.Colors,1))+1,:);
+    pl(i).LineWidth = p.Results.LineWidth;
     if ~isempty(p.Results.DisplayName)
-        pl.DisplayName = [p.Results.DisplayName,' ',num2str(i)];
+        pl(i).DisplayName = [p.Results.DisplayName,' ',num2str(i)];
     else
-        pl.Annotation.LegendInformation.IconDisplayStyle = 'off';
+        pl(i).Annotation.LegendInformation.IconDisplayStyle = 'off';
     end
     hold on
 end
