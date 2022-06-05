@@ -17,7 +17,7 @@ function data = mode_tracking(data,varargin)
 %       Mode - fieldname to specify mode number (default MODE)
 %       XAxis - fieldname to track modes across (default V)
 %       NModes - number of modes to track, if empty will track all modes (default []) 
-%       manual_switch: a cell array of x location to manually switch the
+%       Switch: a cell array of x location to manually switch the
 %               modes, of the following format
 %               {{<XAxisValue>,[new_mode_order]},}, where new_mode_order is
 %               a list with the numbers 1->Modes in the new order
@@ -29,11 +29,11 @@ p = inputParser();
 p.addParameter('Mode','MODE',@ischar);
 p.addParameter('XAxis','V',@ischar);
 p.addParameter('NModes',[],@isnumeric);
-p.addParameter('manual_switch',{});
+p.addParameter('Switch',{});
 p.addParameter('Method','cmplx');
 p.parse(varargin{:})
 
-v_switch = cellfun(@(x)x{1},p.Results.manual_switch);
+v_switch = cellfun(@(x)x{1},p.Results.Switch);
 
 % find all unique velocities
 Xi = sort(unique([data.(p.Results.XAxis)]));
@@ -53,7 +53,7 @@ for v_i = 2:length(Xi)
    % check if we are manual switch modes 
    idx = find(v_switch==Xi(v_i),1);
    if ~isempty(idx)
-       M_f = p.Results.manual_switch{idx}{2};
+       M_f = p.Results.Switch{idx}{2};
        mode_track(:,v_i) = mode_track(M_f,v_i-1);
        continue
    end
@@ -74,6 +74,21 @@ for v_i = 2:length(Xi)
            zero_idx = vecnorm(last) == 0 | vecnorm(next) == 0;
            last(:,zero_idx) = 1/size(last,1);
            next(:,zero_idx) = 1/size(last,1);
+       case 'combine'
+           % get frequency and damping data for this and previous epoch
+           [last] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i-1)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           [next] = extract_vecs(data([data.(p.Results.XAxis)]==Xi(v_i)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           zero_idx = vecnorm(last) == 0 | vecnorm(next) == 0;
+           last(:,zero_idx) = 1/size(last,1);
+           next(:,zero_idx) = 1/size(last,1);
+           [last_cmplx] = extract_complex(data([data.(p.Results.XAxis)]==Xi(v_i-1)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           [next_cmplx] = extract_complex(data([data.(p.Results.XAxis)]==Xi(v_i)),...
+               mode_track(:,v_i-1),p.Results.Mode);
+           last = [last;abs(last_cmplx)*500;angle(last_cmplx)*500];
+           next = [next;abs(next_cmplx)*500;angle(next_cmplx)*500];
        otherwise
            error('Unkown Method - Method "%s" is unknown, it must be either "cmplx" or "modeshape"')
    end

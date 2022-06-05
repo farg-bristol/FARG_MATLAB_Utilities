@@ -5,6 +5,7 @@ function fs = get_flutter_speed(data,varargin)
     p.addParameter('XAxis','V');
     p.addParameter('YAxis','D');
     p.addParameter('Mode','MODE');
+    p.addParameter('Delta',0);
     p.parse(varargin{:})
     if isempty(p.Results.NModes)
         p.parse('NModes',max([data.(p.Results.Mode)]),varargin{:})
@@ -18,7 +19,7 @@ function fs = get_flutter_speed(data,varargin)
         x = [data(I).(p.Results.XAxis)];
         D = [data(I).(p.Results.YAxis)];
         [~,I] = sort(x);
-        tmp_fs = find_crossing(x(I),D(I));
+        tmp_fs = find_crossing(x(I),D(I)-p.Results.Delta);
         if ~isnan(tmp_fs)
             if tmp_fs < fs
                 fs = tmp_fs;
@@ -28,8 +29,11 @@ function fs = get_flutter_speed(data,varargin)
 end
 
 function x_cross = find_crossing(x,y)
-    sign = y(1)/abs(y(1));
     x_cross = nan;
+    if isempty(x) || isempty(y) || length(x)~=length(y)
+        return
+    end
+    sign = y(1)/abs(y(1));
     for i = 2:length(x)
         if sign*y(i)<0
             m = (y(i)-y(i-1))/(x(i)-x(i-1));

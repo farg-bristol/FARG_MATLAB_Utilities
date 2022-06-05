@@ -124,8 +124,9 @@ if colorblindFlag
     switch N
         %     sorry about this line folks. kind of legacy here because I used to
         %     use individual 1x3 cells instead of nx3 arrays
-        case 4
+        case {1,2,3,4}
             lineStyles = colorBrew2mat(colorblindSet);
+            lineStyles = lineStyles(1:N,:);
         otherwise
             colorblindFlag = false;
             warning('sorry unsupported colorblind set for this number, using regular types');
