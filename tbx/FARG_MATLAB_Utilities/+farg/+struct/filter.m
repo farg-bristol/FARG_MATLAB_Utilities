@@ -56,7 +56,7 @@ for i = 1:length(filters)
                 % if its a cell of multiple filters filter by all of them
                 elseif iscell(filters{i}{2})
                     for j= 1:length(filters{i}{2})
-                        if ischar(filters{i}{2}{j}) || ischar(filters{i}{2}{j})             
+                        if ischar(filters{i}{2}{j})        
                             if j == 1
                                 I_temp = strcmp(data,filters{i}{2}{j});  
                             else
@@ -74,7 +74,11 @@ for i = 1:length(filters)
                     filts = filters{i}{2};
                     I_temp = zeros(size(data));
                     for j= 1:length(filts)
-                        I_temp = I_temp | data == filts(j);                    
+                        if isnan(filts(j))
+                            I_temp = I_temp | isnan(data);
+                        else
+                            I_temp = I_temp | data == filts(j);  
+                        end
                     end
                     I = I & I_temp;
                 elseif iscell(filters{i}{2})
