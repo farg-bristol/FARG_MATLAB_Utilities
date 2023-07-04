@@ -39,6 +39,12 @@ end
 
 function [out,outlier] = getQualScheme(Set)
 switch Set
+    case "Default"
+        out = [0,0.85,0.929,0.494,0.466,0.301,0.635;...
+            0.447,0.325,0.694,0.184,0.674,0.745,0.078;...
+            0.741,0.098,0.125,0.556,0.188,0.933,0.184]';
+        out = out*255;
+        outlier = ones(1,3)*187;
     case "Bright"
         out = [ 68,102,34,204,238,170;...
             119,204,136,187,102,51;...
@@ -68,7 +74,7 @@ switch Set
         out = [ 238,238,102,153,153,0,0;...
             204,153,153,119,68,68,0;...
             102,170,204,0,85,136,0]';
-        out = out([3,6,1,5,4,2],:);
+        out = out([2,5,1,4,3,6],:);
         outlier = ones(1,3)*221;
     case "Colorblind"
         out = [215,253,171,44;...
@@ -120,7 +126,7 @@ end
 function SetVaildation(Set,Type)
 switch Type
     case "qual"
-        mustBeMember(Set,["Bright","HighCon","Vib","Muted","MidCon","Light","Colorblind"]);
+        mustBeMember(Set,["Default","Bright","HighCon","Vib","Muted","MidCon","Light","Colorblind"]);
     case "div"
         mustBeMember(Set,["Sunset","BuRd","PRGn"]);
     case "seq"

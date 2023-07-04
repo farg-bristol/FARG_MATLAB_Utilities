@@ -12,7 +12,7 @@ if nargin == 2
         end
     end
 else
-   A = combvec(varargin{1:end-1});
+   A = fh.combvec(varargin{1:end-1});
    Na = size(A,1);
    B = varargin{end};
    Nb = length(B);

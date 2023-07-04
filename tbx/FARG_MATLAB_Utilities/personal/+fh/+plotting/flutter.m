@@ -37,13 +37,17 @@ if ~isempty(opts.filter)
 end
 
 if isempty(opts.NModes)
-    opts.NModes = max([data.(opts.Mode)]);
+    opts.NModes = 1:max([data.(opts.Mode)]);
+elseif length(opts.NModes)==1
+    opts.NModes = 1:opts.NModes;
 end
-for i = 1:opts.NModes
-    mode_ind = [data.(opts.Mode)] == i;
+M_idx = length(opts.NModes);
+for i = 1:M_idx
+    mode_ind = [data.(opts.Mode)] == opts.NModes(i);
     mode_data = data(mode_ind);
     %sort the XAxis
     [~,idx] = sort([mode_data.(opts.XAxis)]);
+    if ~isempty(idx)
     mode_data = mode_data(idx);
     x = [mode_data.(opts.XAxis)];
     y = opts.YScaling([mode_data.(opts.YAxis)]);
@@ -56,5 +60,6 @@ for i = 1:opts.NModes
         pl(i).Annotation.LegendInformation.IconDisplayStyle = 'off';
     end
     hold on
+    end
 end
 end

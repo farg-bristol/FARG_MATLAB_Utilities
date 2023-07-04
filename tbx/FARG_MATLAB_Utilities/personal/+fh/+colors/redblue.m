@@ -38,7 +38,7 @@ else
 end
 
 blues = zeros(m_split,3);
-delta_blue = opts.finish + (opts.centre - opts.finish) * (1-lum_b);
+delta_blue = opts.finish + (opts.centre - opts.finish) * lum_b;
 
 reds = zeros(n_reds,3);
 delta_red = opts.centre + (opts.start - opts.centre) * (1-lum_r);
