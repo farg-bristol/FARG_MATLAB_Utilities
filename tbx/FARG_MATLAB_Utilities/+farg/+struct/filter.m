@@ -27,22 +27,31 @@ function [FiltData,I] = filter(DataStruct,filters)
 % email:    fintan.healy@bristol.ac.uk
 %
 
+if iscell(filters)
+    tmpFilt = struct();
+    for i = 1:length(filters)
+        tmpFilt.(filters{i}{1}) = filters{i}{2};
+    end
+    filters = tmpFilt;
+end
 I = true(1,length(DataStruct));
-for i = 1:length(filters)
-    fieldname = filters{i}{1};
+names = fieldnames(filters);
+for i = 1:length(names)
+    fieldname = names{i};
+    tmpfilt = filters.(fieldname);
     if ischar(fieldname)
         if ~isfield(DataStruct,fieldname)
             warning('skipping filter on field %s as it does not exist',fieldname);
         else
             %if here field exists to filter on   
             % if its a function do minimal stuff to the data
-            if isa(filters{i}{2},'function_handle')
+            if isa(tmpfilt,'function_handle')
+                data = {DataStruct.(fieldname)};
+                if length(data) ~= length(I)
+                    error('data length for field %s does not have the correct length, check for and remove ''empty'' rows',fieldname)
+                end
                 try
-                    if isnumeric(DataStruct(1).(fieldname)) || islogical(DataStruct(1).(fieldname)) || isenum(DataStruct(1).(fieldname))
-                        I = I & cellfun(filters{i}{2},{DataStruct.(fieldname)});
-                    else
-                        I = I & cellfun(filters{i}{2},{DataStruct.(fieldname)});
-                    end
+                    I = I & cellfun(tmpfilt,{DataStruct.(fieldname)});
                 catch
                     warning('Error using function handle on field %s',fieldname);
                     continue
@@ -51,16 +60,16 @@ for i = 1:length(filters)
             elseif ischar(DataStruct(1).(fieldname)) || isstring(DataStruct(1).(fieldname)) || iscellstr(DataStruct(1).(fieldname))
                 data = string({DataStruct.(fieldname)});
                 % if data is a string check filter is a string or a set of cell array of strings
-                if ischar(filters{i}{2}) || isstring(filters{i}{2})
-                    I = I & strcmp(data,filters{i}{2});
+                if ischar(tmpfilt) || isstring(tmpfilt)
+                    I = I & ismember(data,tmpfilt);
                 % if its a cell of multiple filters filter by all of them
-                elseif iscell(filters{i}{2})
-                    for j= 1:length(filters{i}{2})
-                        if ischar(filters{i}{2}{j})        
+                elseif iscell(tmpfilt)
+                    for j= 1:length(tmpfilt)
+                        if ischar(tmpfilt{j})        
                             if j == 1
-                                I_temp = strcmp(data,filters{i}{2}{j});  
+                                I_temp = strcmp(data,tmpfilt{j});  
                             else
-                                I_temp = I_temp | strcmp(data,filters{i}{2}{j});       
+                                I_temp = I_temp | strcmp(data,tmpfilt{j});       
                             end       
                         end
                     end
@@ -70,31 +79,30 @@ for i = 1:length(filters)
             elseif isnumeric(DataStruct(1).(fieldname))
                 data = [DataStruct.(fieldname)];
                 % if filter numeric filter for each item in array
-                if isnumeric(filters{i}{2}) && ~isempty(filters{i}{2})
-                    filts = filters{i}{2};
+                if isnumeric(tmpfilt) && ~isempty(tmpfilt)
                     I_temp = zeros(size(data));
-                    for j= 1:length(filts)
-                        if isnan(filts(j))
+                    for j= 1:length(tmpfilt)
+                        if isnan(tmpfilt(j))
                             I_temp = I_temp | isnan(data);
                         else
-                            I_temp = I_temp | data == filts(j);  
+                            I_temp = I_temp | data == tmpfilt(j);  
                         end
                     end
                     I = I & I_temp;
-                elseif iscell(filters{i}{2})
-                    if strcmp(filters{i}{2}{1},'range')
-                        if isnumeric(filters{i}{2}{2}) && length(filters{i}{2}{2}) == 2
-                            bounds = filters{i}{2}{2};
+                elseif iscell(tmpfilt)
+                    if strcmp(tmpfilt{1},'range')
+                        if isnumeric(tmpfilt{2}) && length(tmpfilt{2}) == 2
+                            bounds = tmpfilt{2};
                             I = I & (data >= bounds(1) & data <= bounds(2));
                         end
-                    elseif strcmp(filters{i}{2}{1},'contains')
-                        if ischar(filters{i}{2}{2})
-                            I = I & contains(data,filters{i}{2}{2});
+                    elseif strcmp(tmpfilt{1},'contains')
+                        if ischar(tmpfilt{2})
+                            I = I & contains(data,tmpfilt{2});
                         end
-                    elseif strcmp(filters{i}{2}{1},'tol')
-                        if isnumeric(filters{i}{2}{2}) && isnumeric(filters{i}{2}{3})
-                            val = filters{i}{2}{2};
-                            tol = filters{i}{2}{3};
+                    elseif strcmp(tmpfilt{1},'tol')
+                        if isnumeric(tmpfilt{2}) && isnumeric(tmpfilt{3})
+                            val = tmpfilt{2};
+                            tol = tmpfilt{3};
                             tmp_I = (data >= val(1)-tol & data <= val(1)+tol);
                             for v_i = 2:length(val)
                                 tmp_I = tmp_I|(data >= val(v_i)-tol & data <= val(v_i)+tol);
@@ -106,18 +114,17 @@ for i = 1:length(filters)
             elseif isenum(DataStruct(1).(fieldname))
                 data = [DataStruct.(fieldname)];
                 % if filter numeric filter for each item in array
-                if isenum(filters{i}{2}) && ~isempty(filters{i}{2})
-                    filts = filters{i}{2};
+                if isenum(tmpfilt) && ~isempty(tmpfilt)
                     I_temp = zeros(size(data));
-                    for j= 1:length(filts)
-                        I_temp = I_temp | data == filts(j);                    
+                    for j= 1:length(tmpfilt)
+                        I_temp = I_temp | data == tmpfilt(j);                    
                     end
                     I = I & I_temp;
                 end
             elseif islogical(DataStruct(1).(fieldname))
                 data = [DataStruct.(fieldname)];
-                if islogical(filters{i}{2}) || isnumeric(filters{i}{2})
-                    I = I & (data == filters{i}{2});
+                if islogical(tmpfilt) || isnumeric(tmpfilt)
+                    I = I & (data == tmpfilt);
                 end
             else
                 warning('Skipping field %s, as the 1st row is an unknown data type',fieldname);
